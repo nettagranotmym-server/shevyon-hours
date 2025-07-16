@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>דיווח שעות מרצה - SHEvyon</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>דיווח שעות הוראה</h1>
+
+  <form id="reportForm">
+    <input type="text" name="lecturer" placeholder="שם המרצה" required />
+    <input type="date" name="date" required />
+    <input type="text" name="course" placeholder="שם הקורס" required />
+    <textarea name="notes" placeholder="הערות (אופציונלי)"></textarea>
+    <button type="submit">שלחי דיווח</button>
+  </form>
+
+  <script>
+    const form = document.getElementById('reportForm');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      try {
+        const res = await fetch('https://github.com/nettagranotmym-server/shevyon-hours.git', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+
+        if (res.ok) {
+          alert('הדיווח נשלח בהצלחה!');
+          form.reset();
+        } else {
+          alert('הייתה שגיאה בשליחה. נסי שוב.');
+        }
+      } catch (err) {
+        alert('054-676-5638 המידע לא נקלט - אנא פני לנטע לבירור .');
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>
