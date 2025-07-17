@@ -24,7 +24,7 @@
       const data = Object.fromEntries(formData.entries());
 
       try {
-        const res = await fetch('https://github.com/nettagranotmym-server/shevyon-hours.git', {
+        const res = await fetch('https://shevyon-hours.onrender.com/report', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
