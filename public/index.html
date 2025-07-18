@@ -2,6 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>דיווח שעות מרצה - SHEvyon</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -14,14 +15,20 @@
     <input type="text" name="course" placeholder="שם הקורס" required />
     <textarea name="notes" placeholder="הערות (אופציונלי)"></textarea>
     <button type="submit">שלחי דיווח</button>
+    <div id="statusMsg" style="margin-top: 12px; text-align: center;"></div>
   </form>
 
   <script>
     const form = document.getElementById('reportForm');
+    const statusMsg = document.getElementById('statusMsg');
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(form);
       const data = Object.fromEntries(formData.entries());
+
+      // שלב א: מציגה הודעה על טעינה עם שעון חול
+      statusMsg.innerHTML = '⏳ נא להמתין... הנתונים מועברים לשרת';
 
       try {
         const res = await fetch('https://shevyon-hours.onrender.com/report', {
@@ -31,13 +38,13 @@
         });
 
         if (res.ok) {
-          alert('הדיווח נשלח בהצלחה!');
+          statusMsg.innerHTML = '✅ הדיווח נשלח בהצלחה!';
           form.reset();
         } else {
-          alert('הייתה שגיאה בשליחה. נסי שוב.');
+          statusMsg.innerHTML = '⚠️ אירעה שגיאה בשליחה. אנא נסי שוב.';
         }
       } catch (err) {
-        alert('054-676-5638 המידע לא נקלט - אנא פני לנטע לבירור .');
+        statusMsg.innerHTML = '⚠️ השרת לא הגיב. נסי שוב בעוד כמה שניות.';
         console.error(err);
       }
     });

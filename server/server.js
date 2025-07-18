@@ -1,34 +1,76 @@
+require('dotenv').config();
+const mongoose = require('mongoose');
 const express = require('express');
-const fs = require('fs');
 const cors = require('cors');
+const fs = require('fs');
+const { Parser } = require('json2csv');
 const path = require('path');
-const app = express();
 
+const app = express();
 app.use(cors());
 app.use(express.json());
 
-const FILE_PATH = './reports.csv';
+// ✅ חיבור למסד הנתונים MongoDB
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('✅ Connected to MongoDB'))
+  .catch((err) => console.error('❌ MongoDB connection error:', err));
 
-app.post('/report', (req, res) => {
-  const { lecturer, date, course, notes } = req.body;
-  const row = `"${lecturer}","${date}","${course}","${notes || ''}"\n`;
+// ✅ סכימה ו־מודל
+const reportSchema = new mongoose.Schema({
+  lecturer: String,
+  date: String,
+  course: String,
+  notes: String
+});
+const Report = mongoose.model('Report', reportSchema);
 
-  const fileExists = fs.existsSync(FILE_PATH);
-  if (!fileExists) {
-    // מוסיפים BOM כדי שאקסל יבין שזה UTF-8
-    const header = '\uFEFFשם המרצה,תאריך,שם הקורס,הערות\n';
-    fs.writeFileSync(FILE_PATH, header, 'utf8');
+// ✅ שמירת דיווח חדש
+app.post('/report', async (req, res) => {
+  try {
+    const report = new Report(req.body);
+    await report.save();
+    res.status(200).send('Saved to MongoDB');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Failed to save');
   }
-
-  fs.appendFileSync(FILE_PATH, row, 'utf8');
-  res.status(200).send('Saved');
 });
 
-app.get('/reports', (req, res) => {
-  if (!fs.existsSync(FILE_PATH)) return res.send('No reports yet');
-  res.sendFile(path.resolve(FILE_PATH));
+// ✅ שליפת כל הדיווחים (JSON)
+app.get('/reports', async (req, res) => {
+  try {
+    const reports = await Report.find();
+    res.json(reports);
+  } catch (err) {
+    res.status(500).send('Error fetching reports');
+  }
 });
 
-app.listen(3000, () => {
-  console.log('Server running on http://localhost:3000');
+// ✅ יצירת והורדת קובץ CSV
+app.get('/download-csv', async (req, res) => {
+  try {
+    const reports = await Report.find().lean();
+    if (reports.length === 0) return res.status(404).send('אין נתונים');
+
+    const fields = ['lecturer', 'date', 'course', 'notes'];
+    const opts = { fields, withBOM: true };
+    const parser = new Parser(opts);
+    const csv = parser.parse(reports);
+
+    const filePath = path.join(__dirname, 'reports.csv');
+    fs.writeFileSync(filePath, csv, 'utf8');
+
+    res.download(filePath, 'reports.csv', (err) => {
+      if (err) console.error('שגיאה בשליחה:', err);
+      fs.unlinkSync(filePath); // מוחק את הקובץ לאחר השליחה
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('שגיאה ביצירת הקובץ');
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

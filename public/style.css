@@ -6,11 +6,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 40px;
+    padding: 40px 16px; /* מרווח צד קטן למובייל */
+    margin: 0;
   }
 
   h1 {
     color: #6b4c9a;
+    text-align: center;
+    font-size: 1.8em;
   }
 
   form {
@@ -20,6 +23,7 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     width: 100%;
     max-width: 400px;
+    box-sizing: border-box;
   }
 
   input, textarea, button {
@@ -50,5 +54,15 @@
 
   button:hover {
     background-color: #875fc2;
+  }
+
+  @media (max-width: 480px) {
+    h1 {
+      font-size: 1.4em;
+    }
+
+    form {
+      padding: 20px;
+    }
   }
 </style>
