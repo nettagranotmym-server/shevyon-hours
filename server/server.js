@@ -11,9 +11,12 @@ app.use(cors());
 app.use(express.json());
 
 // ✅ חיבור למסד הנתונים MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch((err) => console.error('❌ MongoDB connection error:', err));
+mongoose.connect(process.env.MONGO_URI, {
+  dbName: 'shevyonDB'
+})
+.then(() => console.log('✅ Connected to MongoDB'))
+.catch((err) => console.error('❌ MongoDB connection error:', err));
+
 
 // ✅ סכימה ו־מודל
 const reportSchema = new mongoose.Schema({
